@@ -1,0 +1,59 @@
+name: Deploy
+
+# Deploys site/ to the chd-ds-web-main Azure Static Web App (datascience.unocha.org).
+# Production only: it runs for main, never for a branch or a pull request, so whatever
+# reaches main is what the site serves.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the deploy key is set
+        id: key
+        env:
+          TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            echo "set=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::The secret AZURE_STATIC_WEB_APPS_API_TOKEN is not set yet, so nothing was deployed."
+            echo "set=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Sent with the deploy key, as in the Azure portal's own template, in case the app
+      # uses the GitHub deployment policy.
+      - name: Get an ID token
+        if: steps.key.outputs.set == 'true'
+        id: idtoken
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: return await core.getIDToken()
+
+      - name: Deploy
+        if: steps.key.outputs.set == 'true'
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.idtoken.outputs.result }}
+          action: upload
+          app_location: site
+          skip_app_build: true
