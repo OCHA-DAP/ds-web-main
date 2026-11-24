@@ -1,8 +1,10 @@
 name: Deploy
 
 # Deploys site/ to the chd-ds-web-main Azure Static Web App (datascience.unocha.org).
-# Production only: it runs for main, never for a branch or a pull request, so whatever
-# reaches main is what the site serves.
+# Production only: the job runs for main, not for a branch or a pull request. An edited
+# copy of this file on a branch could still try, so the token is meant to be an
+# environment secret of `production`, whose deployment branches are limited to main
+# (see README).
 on:
   push:
     branches: [main]
@@ -16,12 +18,13 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy
+  group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -38,8 +41,9 @@ jobs:
             echo "set=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Sent with the deploy key, as in the Azure portal's own template, in case the app
-      # uses the GitHub deployment policy.
+      # Sent with the token, as in the Azure portal's own template, because the app's
+      # deployment authorization policy is GitHub. Remove this step and github_id_token
+      # once the policy is Deployment token (see README).
       - name: Get an ID token
         if: steps.key.outputs.set == 'true'
         id: idtoken
@@ -56,4 +60,5 @@ jobs:
           github_id_token: ${{ steps.idtoken.outputs.result }}
           action: upload
           app_location: site
+          output_location: ""
           skip_app_build: true
