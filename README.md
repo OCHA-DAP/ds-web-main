@@ -18,6 +18,14 @@ and how) is a proposal in the team knowledge base:
 
 ## Deploying
 
+**For now the placeholder is deployed from the knowledge base repo, not from here.** When
+TSS created the app in the Azure portal on 2026-11-24, the portal put its deploy key in the
+secrets of `OCHA-DAP/ds-knowledge-base`, and nobody on the team can read the key from Azure
+yet. So the KB's workflow `azure-static-web-apps-orange-coast-043ccba0f.yml` deploys the same
+placeholder. **To move here:** once the key can be read from Azure, copy it into this repo's
+secret `AZURE_STATIC_WEB_APPS_API_TOKEN`, run this repo's deploy, and delete the KB's
+workflow and its `AZURE_STATIC_WEB_APPS_API_TOKEN_*` secrets.
+
 The workflow needs the app's deploy key in the repo secret
 `AZURE_STATIC_WEB_APPS_API_TOKEN`. Without it, the run skips the deploy and shows a
 warning.
