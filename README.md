@@ -24,12 +24,13 @@ The workflow deploys `site/` with the app's deployment token, stored as the secr
 accepts deployments from `main`, so a branch can't use the token, even with an edited copy
 of the workflow. If the secret is missing, the run fails.
 
-**Keep the workflow file's name.** The app's deployment authorization policy is *GitHub*,
-and Azure refuses to switch it to *Deployment token* ("Cannot update policy without
-providing repository token"). Under *GitHub*, each deploy also sends GitHub's ID token, and
-Azure finds the app from the workflow file's name in it. The file must stay
-`azure-static-web-apps-orange-coast-043ccba0f.yml` (after the app's default hostname); a
-deploy from a file with another name is refused.
+**The deployment authorization policy is *Deployment token*,** so the token alone is
+enough. The portal had set it to *GitHub*, under which Azure only accepts deploys that also
+carry GitHub's ID token from the linked repo. Azure refused a plain switch ("Cannot update
+policy without providing repository token"); on 2026-11-27, with the app unlinked, it
+accepted one that also sent a GitHub token and the build properties (app location `site`,
+no workflow generated). The workflow file keeps the name Azure gave it,
+`azure-static-web-apps-orange-coast-043ccba0f.yml`.
 
 Changes to `site/` go through pull requests: whatever reaches `main` under `site/` is
 public, and anyone who can push to `main` can use the token.
