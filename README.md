@@ -18,30 +18,26 @@ and how) is a proposal in the team knowledge base:
 
 ## Deploying
 
-**For now the placeholder is deployed from the knowledge base repo, not from here.** When
-TSS created the app in the Azure portal on 2026-11-24, the portal linked it to
-`OCHA-DAP/ds-knowledge-base` and put its deployment token in that repo's secrets. Nobody
-on the team can read the token from Azure yet, so the KB's workflow
-`azure-static-web-apps-orange-coast-043ccba0f.yml` deploys the same placeholder.
+`.github/workflows/deploy.yml` deploys `site/` with the app's deployment token, stored as
+the secret `AZURE_STATIC_WEB_APPS_API_TOKEN` of the `production` environment. That
+environment only accepts deployments from `main`, so a branch can't use the token, even
+with an edited copy of the workflow. The app's deployment authorization policy is
+*Deployment token*, so the token alone is enough.
 
-**To move the deploy here** (needs Contributor on the app):
+Changes to `site/` go through pull requests: whatever reaches `main` under `site/` is public.
 
-1. Switch the app's deployment authorization policy from *GitHub* to *Deployment token*
-   (portal: Settings > Configuration > Deployment configuration). Under *GitHub*, deploys
-   are checked against the repo the app is linked to (the KB), so a deploy from here may
-   be refused. If the setting can't be changed, the fallback is to recreate the app with
-   no repo link; its default hostname would then change, and so would the DNS record and
-   custom domain for `datascience.unocha.org`.
-2. Reset the deployment token (Azure portal: Overview > Manage deployment token), so the
-   copy in the KB stops working. In this repo, create the environment `production` with
-   deployment branches limited to `main`, and store the new token there as the
-   environment secret `AZURE_STATIC_WEB_APPS_API_TOKEN`. A branch then can't use the
-   token, even with an edited copy of the workflow.
-3. Remove the *Get an ID token* step and the `github_id_token` input from the workflow;
-   they are only needed under the *GitHub* policy.
-4. Run the deploy, check the redirect, then delete the KB's workflow and its
-   `AZURE_STATIC_WEB_APPS_API_TOKEN_*` secrets, and unlink the app from the KB.
+**Moved here on 2026-11-27.** Until then the knowledge base repo deployed the placeholder,
+because the Azure portal had linked the app to that repo and put the token in its secrets
+when TSS created the app on 2026-11-24. The token was reset when the deploy moved here, so
+the copy in the knowledge base no longer works.
 
-Until the token is set, the workflow skips the deploy and shows a warning. Changes to
-`site/` should go through pull requests: once the token is set, whatever reaches `main`
-under `site/` is public.
+**If the token stops working** (reset in Azure, for example): someone with Contributor on
+the app reads the new one and stores it without printing it:
+
+```sh
+az staticwebapp secrets list -n chd-ds-web-main -g IMB-CHD-DataScience-EastUS2 \
+  --query properties.apiKey -o tsv \
+  | gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN -R OCHA-DAP/ds-web-main --env production
+```
+
+Then run the workflow by hand from `main`.
