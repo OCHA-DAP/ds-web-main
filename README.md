@@ -38,7 +38,8 @@ public, and anyone who can push to `main` can use the token.
 linked it to `OCHA-DAP/ds-knowledge-base` and put the token in that repo's secrets, so
 the knowledge base deployed the placeholder until the deploy moved here. When it moved,
 the app was unlinked from that repo (it is linked to none now) and the token was reset,
-so the copy in the knowledge base no longer works.
+so the copy in the knowledge base no longer works. The knowledge base's own workflow and
+secret for this app are removed separately (OCHA-DAP/ds-knowledge-base#883).
 
 **If the token stops working** (reset in Azure, for example): someone with Contributor on
 the app reads the new one and stores it without printing it, checking it isn't empty:

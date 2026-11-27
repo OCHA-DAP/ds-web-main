@@ -7,9 +7,8 @@ name: Deploy
 # app's default hostname. A file with another name is refused ("Could not determine the
 # Static Web App from the GitHub OIDC workflow reference").
 # Production only: the job runs for main, not for a branch or a pull request. An edited
-# copy of this file on a branch could still try, so the token is meant to be an
-# environment secret of `production`, whose deployment branches are limited to main
-# (see README).
+# copy of this file on a branch could still try, so the token is an environment secret
+# of `production`, whose deployment branches are limited to main (see README).
 on:
   push:
     branches: [main]
