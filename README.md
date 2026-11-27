@@ -35,8 +35,18 @@ which stays its main address for now.
   changed, so a tracker publish shows here within about half an hour (GitHub may start
   scheduled runs late). A push to `main` or a run by hand always deploys.
 - **If the tracker can't be read**, or a file doesn't match the list, the copy already live
-  here is used instead. If neither can be read, nothing is deployed: a deploy replaces the
-  whole app, so one without the tracker would remove it.
+  here is used instead, and the next scheduled run tries again. (GitHub Pages' CDN keeps files
+  for up to 10 minutes, so just after a tracker publish old and new files can mix.) If
+  neither copy can be read, nothing is deployed: a deploy replaces the whole app, so one
+  without the tracker would remove it. A list that holds a name or entry the script won't
+  copy stops the run with an error; it is never worked around, so the copy here can't go
+  stale unnoticed.
+- **`version.json`** at the root records this repo's commit and the tracker's. A scheduled
+  run also deploys when the live commit is older than `main`, so a push whose own run was
+  dropped from the queue still goes out.
+- **Links into the password pages.** The open pages link to `dev/<page>.html`. Here those
+  addresses redirect to the development site's front page on GitHub Pages, not to the page
+  itself: a Static Web App redirect can't carry the rest of the address.
 - **For now** the folder is a second address. Its pages send `X-Robots-Tag: noindex`, so
   search engines keep the GitHub Pages address. Before it becomes the main address: the
   tracker's page-view counter (it counts only on `ocha-dap.github.io`), its proxy's allowed

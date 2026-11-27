@@ -26,9 +26,10 @@ on:
 permissions:
   contents: read
 
-# one at a time; a waiting run is replaced by a newer one
+# one at a time per branch (only main's runs do anything); a waiting run is replaced by a newer
+# one, and if that drops a push's deploy, the next scheduled run sees the newer commit and deploys
 concurrency:
-  group: deploy-main-app
+  group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
