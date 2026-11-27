@@ -2,6 +2,19 @@
   "routes": [
     { "route": "/.auth/login/github", "statusCode": 404 },
     { "route": "/.auth/login/aad", "statusCode": 404 },
+    { "route": "/aa-tracker/dev/*", "redirect": "https://ocha-dap.github.io/ds-aa-tracking/dev/", "statusCode": 302 },
+    { "route": "/aa-tracker/admin/*", "redirect": "https://ocha-dap.github.io/ds-aa-tracking/admin/", "statusCode": 302 },
+    { "route": "/aa-tracker", "redirect": "/aa-tracker/", "statusCode": 301 },
+    { "route": "/aa-tracker/*", "headers": { "Access-Control-Allow-Origin": "*", "X-Robots-Tag": "noindex" } },
     { "route": "/*", "redirect": "https://www.unocha.org/", "statusCode": 302, "headers": { "Cache-Control": "no-store" } }
-  ]
+  ],
+  "mimeTypes": {
+    ".md": "text/markdown; charset=utf-8",
+    ".csv": "text/csv; charset=utf-8",
+    ".txt": "text/plain; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".xml": "application/xml",
+    ".geojson": "application/geo+json",
+    ".topojson": "application/json; charset=utf-8"
+  }
 }

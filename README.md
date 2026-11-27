@@ -11,15 +11,42 @@ and how) is a proposal in the team knowledge base:
 
 ## What is here
 
-- `site/`: what the app serves. `staticwebapp.config.json` holds the redirect and turns
-  off the built-in sign-in addresses, since the main app is public.
-- `.github/workflows/azure-static-web-apps-orange-coast-043ccba0f.yml`: deploys `site/` to
-  `chd-ds-web-main` when a change to `site/` or the workflow reaches `main`, or when run by
-  hand from `main`. Keep its name (see below).
+- `site/`: the root of the site. `staticwebapp.config.json` holds the routing rules: the
+  redirect of every other address to www.unocha.org, the AA tracker's folder, and the built-in
+  sign-in addresses turned off (the main app is public).
+- `scripts/assemble.py`: puts the site together in `_site/` before each deploy: `site/` at the
+  root, and the AA tracker's open site in `aa-tracker/` (below).
+- `.github/workflows/azure-static-web-apps-orange-coast-043ccba0f.yml`: assembles and deploys
+  (see Deploying).
+
+## The AA tracker at `/aa-tracker/`
+
+`datascience.unocha.org/aa-tracker/` serves the open site of the AA tracker
+([OCHA-DAP/ds-aa-tracking](https://github.com/OCHA-DAP/ds-aa-tracking)), the same pages and
+data as [ocha-dap.github.io/ds-aa-tracking](https://ocha-dap.github.io/ds-aa-tracking/),
+which stays its main address for now.
+
+- **How it gets here.** The tracker publishes the list of its open files, each with its size
+  and SHA-256 (`open-site-files.json`). `scripts/assemble.py` copies every listed file from
+  the tracker's GitHub Pages site and checks it against the list. The password-protected
+  `dev/` and `admin/` pages are never in the list; their addresses here redirect to GitHub
+  Pages.
+- **When.** The workflow checks every 30 minutes and deploys when the tracker's list has
+  changed, so a tracker publish shows here within about half an hour (GitHub may start
+  scheduled runs late). A push to `main` or a run by hand always deploys.
+- **If the tracker can't be read**, or a file doesn't match the list, the copy already live
+  here is used instead. If neither can be read, nothing is deployed: a deploy replaces the
+  whole app, so one without the tracker would remove it.
+- **For now** the folder is a second address. Its pages send `X-Robots-Tag: noindex`, so
+  search engines keep the GitHub Pages address. Before it becomes the main address: the
+  tracker's page-view counter (it counts only on `ocha-dap.github.io`), its proxy's allowed
+  origins, `SITE_URL` for its `llms.txt`, and forwarding pages at the old address.
+- GitHub turns off scheduled workflows in a public repo after 60 days without a commit. If
+  that happens, the tracker stops updating here until the workflow is turned on again.
 
 ## Deploying
 
-The workflow deploys `site/` with the app's deployment token, stored as the secret
+The workflow assembles the site (above) and deploys it with the app's deployment token, stored as the secret
 `AZURE_STATIC_WEB_APPS_API_TOKEN` of the `production` environment. That environment only
 accepts deployments from `main`, so a branch can't use the token, even with an edited copy
 of the workflow. If the secret is missing, the run fails.
@@ -32,8 +59,8 @@ accepted one that also sent a GitHub token and the build properties (app locatio
 no workflow generated). The workflow file keeps the name Azure gave it,
 `azure-static-web-apps-orange-coast-043ccba0f.yml`.
 
-Changes to `site/` go through pull requests: whatever reaches `main` under `site/` is
-public, and anyone who can push to `main` can use the token.
+Changes go through pull requests (`main` accepts no direct pushes): whatever reaches `main`
+under `site/` is public, and the workflow on `main` can use the token.
 
 **Where it came from.** TSS created the app in the Azure portal on 2026-11-24. The portal
 linked it to `OCHA-DAP/ds-knowledge-base` and put the token in that repo's secrets, so
