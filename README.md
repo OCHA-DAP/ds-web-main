@@ -3,7 +3,7 @@
 The main app of `datascience.unocha.org`: the Azure Static Web App `chd-ds-web-main`
 (OCHA Centre for Humanitarian Data, Data Science team; Unite Apps `OCHA-0187`).
 
-For now it holds a placeholder. Once deployed, every address sends visitors to
+For now it holds a placeholder: every address sends visitors to
 [www.unocha.org](https://www.unocha.org/) with a temporary (302) redirect, until the site
 has content of its own. The plan for the site (the landing page, which sites move here
 and how) is a proposal in the team knowledge base:
@@ -13,35 +13,43 @@ and how) is a proposal in the team knowledge base:
 
 - `site/`: what the app serves. `staticwebapp.config.json` holds the redirect and turns
   off the built-in sign-in addresses, since the main app is public.
-- `.github/workflows/deploy.yml`: deploys `site/` to `chd-ds-web-main` when a change to
-  `site/` or the workflow reaches `main`, or when run by hand from `main`.
+- `.github/workflows/azure-static-web-apps-orange-coast-043ccba0f.yml`: deploys `site/` to
+  `chd-ds-web-main` when a change to `site/` or the workflow reaches `main`, or when run by
+  hand from `main`. Keep its name (see below).
 
 ## Deploying
 
-**For now the placeholder is deployed from the knowledge base repo, not from here.** When
-TSS created the app in the Azure portal on 2026-11-24, the portal linked it to
-`OCHA-DAP/ds-knowledge-base` and put its deployment token in that repo's secrets. Nobody
-on the team can read the token from Azure yet, so the KB's workflow
-`azure-static-web-apps-orange-coast-043ccba0f.yml` deploys the same placeholder.
+The workflow deploys `site/` with the app's deployment token, stored as the secret
+`AZURE_STATIC_WEB_APPS_API_TOKEN` of the `production` environment. That environment only
+accepts deployments from `main`, so a branch can't use the token, even with an edited copy
+of the workflow. If the secret is missing, the run fails.
 
-**To move the deploy here** (needs Contributor on the app):
+**Keep the workflow file's name.** The app's deployment authorization policy is *GitHub*,
+and Azure refuses to switch it to *Deployment token* ("Cannot update policy without
+providing repository token"). Under *GitHub*, each deploy also sends GitHub's ID token, and
+Azure finds the app from the workflow file's name in it. The file must stay
+`azure-static-web-apps-orange-coast-043ccba0f.yml` (after the app's default hostname); a
+deploy from a file with another name is refused.
 
-1. Switch the app's deployment authorization policy from *GitHub* to *Deployment token*
-   (portal: Settings > Configuration > Deployment configuration). Under *GitHub*, deploys
-   are checked against the repo the app is linked to (the KB), so a deploy from here may
-   be refused. If the setting can't be changed, the fallback is to recreate the app with
-   no repo link; its default hostname would then change, and so would the DNS record and
-   custom domain for `datascience.unocha.org`.
-2. Reset the deployment token (Azure portal: Overview > Manage deployment token), so the
-   copy in the KB stops working. In this repo, create the environment `production` with
-   deployment branches limited to `main`, and store the new token there as the
-   environment secret `AZURE_STATIC_WEB_APPS_API_TOKEN`. A branch then can't use the
-   token, even with an edited copy of the workflow.
-3. Remove the *Get an ID token* step and the `github_id_token` input from the workflow;
-   they are only needed under the *GitHub* policy.
-4. Run the deploy, check the redirect, then delete the KB's workflow and its
-   `AZURE_STATIC_WEB_APPS_API_TOKEN_*` secrets, and unlink the app from the KB.
+Changes to `site/` go through pull requests: whatever reaches `main` under `site/` is
+public, and anyone who can push to `main` can use the token.
 
-Until the token is set, the workflow skips the deploy and shows a warning. Changes to
-`site/` should go through pull requests: once the token is set, whatever reaches `main`
-under `site/` is public.
+**Where it came from.** TSS created the app in the Azure portal on 2026-11-24. The portal
+linked it to `OCHA-DAP/ds-knowledge-base` and put the token in that repo's secrets, so
+the knowledge base deployed the placeholder until the deploy moved here. When it moved,
+the app was unlinked from that repo (it is linked to none now) and the token was reset,
+so the copy in the knowledge base no longer works. The knowledge base's own workflow and
+secret for this app are removed separately (OCHA-DAP/ds-knowledge-base#883).
+
+**If the token stops working** (reset in Azure, for example): someone with Contributor on
+the app reads the new one and stores it without printing it, checking it isn't empty:
+
+```sh
+TOKEN=$(az staticwebapp secrets list -n chd-ds-web-main -g IMB-CHD-DataScience-EastUS2 \
+  --subscription OCHA-PROD --query properties.apiKey -o tsv) \
+  && [ -n "$TOKEN" ] \
+  && printf '%s' "$TOKEN" | gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN -R OCHA-DAP/ds-web-main --env production
+unset TOKEN
+```
+
+Then run the workflow by hand from `main`, and check that its *Deploy* step ran.

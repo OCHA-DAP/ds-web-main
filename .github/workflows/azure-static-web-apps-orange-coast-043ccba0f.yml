@@ -1,16 +1,20 @@
 name: Deploy
 
 # Deploys site/ to the chd-ds-web-main Azure Static Web App (datascience.unocha.org).
+# KEEP THIS FILE'S NAME. The app's deployment authorization policy is GitHub (Azure refuses
+# to switch it), and under that policy Azure finds the app from the workflow file's name in
+# GitHub's ID token: it must stay azure-static-web-apps-orange-coast-043ccba0f.yml, after the
+# app's default hostname. A file with another name is refused ("Could not determine the
+# Static Web App from the GitHub OIDC workflow reference").
 # Production only: the job runs for main, not for a branch or a pull request. An edited
-# copy of this file on a branch could still try, so the token is meant to be an
-# environment secret of `production`, whose deployment branches are limited to main
-# (see README).
+# copy of this file on a branch could still try, so the token is an environment secret
+# of `production`, whose deployment branches are limited to main (see README).
 on:
   push:
     branches: [main]
     paths:
       - "site/**"
-      - ".github/workflows/deploy.yml"
+      - ".github/workflows/azure-static-web-apps-orange-coast-043ccba0f.yml"
   workflow_dispatch: {}
 
 permissions:
@@ -29,23 +33,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # A missing token fails the run, so a deploy that didn't happen never shows as green.
       - name: Check the deploy key is set
-        id: key
         env:
           TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
         run: |
-          if [ -n "$TOKEN" ]; then
-            echo "set=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::The secret AZURE_STATIC_WEB_APPS_API_TOKEN is not set yet, so nothing was deployed."
-            echo "set=false" >> "$GITHUB_OUTPUT"
+          if [ -z "$TOKEN" ]; then
+            echo "::error::The environment secret AZURE_STATIC_WEB_APPS_API_TOKEN (environment production) is not set, so nothing was deployed. See README."
+            exit 1
           fi
 
-      # Sent with the token, as in the Azure portal's own template, because the app's
-      # deployment authorization policy is GitHub. Remove this step and github_id_token
-      # once the policy is Deployment token (see README).
+      # Sent with the token because the app's deployment authorization policy is GitHub.
       - name: Get an ID token
-        if: steps.key.outputs.set == 'true'
         id: idtoken
         uses: actions/github-script@v8
         with:
@@ -53,7 +52,6 @@ jobs:
           script: return await core.getIDToken()
 
       - name: Deploy
-        if: steps.key.outputs.set == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
