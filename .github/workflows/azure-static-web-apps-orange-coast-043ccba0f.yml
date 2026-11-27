@@ -1,6 +1,11 @@
 name: Deploy
 
 # Deploys site/ to the chd-ds-web-main Azure Static Web App (datascience.unocha.org).
+# KEEP THIS FILE'S NAME. The app's deployment authorization policy is GitHub (Azure refuses
+# to switch it), and under that policy Azure finds the app from the workflow file's name in
+# GitHub's ID token: it must stay azure-static-web-apps-orange-coast-043ccba0f.yml, after the
+# app's default hostname. A file with another name is refused ("Could not determine the
+# Static Web App from the GitHub OIDC workflow reference").
 # Production only: the job runs for main, not for a branch or a pull request. An edited
 # copy of this file on a branch could still try, so the token is meant to be an
 # environment secret of `production`, whose deployment branches are limited to main
@@ -10,11 +15,12 @@ on:
     branches: [main]
     paths:
       - "site/**"
-      - ".github/workflows/deploy.yml"
+      - ".github/workflows/azure-static-web-apps-orange-coast-043ccba0f.yml"
   workflow_dispatch: {}
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -38,10 +44,19 @@ jobs:
             exit 1
           fi
 
+      # Sent with the token because the app's deployment authorization policy is GitHub.
+      - name: Get an ID token
+        id: idtoken
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: return await core.getIDToken()
+
       - name: Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_id_token: ${{ steps.idtoken.outputs.result }}
           action: upload
           app_location: site
           output_location: ""
