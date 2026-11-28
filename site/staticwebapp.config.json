@@ -5,7 +5,7 @@
     { "route": "/.auth/login/aad", "statusCode": 404 },
     { "route": "/aa-tracker/dev/*", "redirect": "https://ocha-dap.github.io/ds-aa-tracking/dev/", "statusCode": 302 },
     { "route": "/aa-tracker/admin/*", "redirect": "https://ocha-dap.github.io/ds-aa-tracking/admin/", "statusCode": 302 },
-    { "route": "/aa-tracker/*", "headers": { "Access-Control-Allow-Origin": "*", "X-Robots-Tag": "noindex" } },
+    { "route": "/aa-tracker/*", "headers": { "Access-Control-Allow-Origin": "*", "Referrer-Policy": "strict-origin-when-cross-origin" } },
     { "route": "/version.json", "headers": { "Cache-Control": "no-store" } },
     { "route": "/*", "redirect": "https://www.unocha.org/", "statusCode": 302, "headers": { "Cache-Control": "no-store" } }
   ],

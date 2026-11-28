@@ -21,10 +21,12 @@ and how) is a proposal in the team knowledge base:
 
 ## The AA tracker at `/aa-tracker/`
 
-`datascience.unocha.org/aa-tracker/` serves the open site of the AA tracker
-([OCHA-DAP/ds-aa-tracking](https://github.com/OCHA-DAP/ds-aa-tracking)), the same pages and
-data as [ocha-dap.github.io/ds-aa-tracking](https://ocha-dap.github.io/ds-aa-tracking/),
-which stays its main address for now.
+`datascience.unocha.org/aa-tracker/` is the main address of the AA tracker's open site
+([OCHA-DAP/ds-aa-tracking](https://github.com/OCHA-DAP/ds-aa-tracking), its decision D258,
+2026-11-28). The tracker still publishes to
+[ocha-dap.github.io/ds-aa-tracking](https://ocha-dap.github.io/ds-aa-tracking/): there each open
+page sends readers on to the same page here, the data files stay readable for programs, and
+the password-protected `dev/` and `admin/` pages stay.
 
 - **How it gets here.** The tracker publishes the list of its open files, each with its size
   and SHA-256 (`open-site-files.json`). `scripts/assemble.py` copies every listed file from
@@ -47,13 +49,15 @@ which stays its main address for now.
 - **Addresses.** `trailingSlash` is `auto`: `/aa-tracker` redirects to `/aa-tracker/` (the
   pages' relative links need the slash), and `page.html` redirects to `page`, which serves
   the same file.
-- **Links into the password pages.** The open pages link to `dev/<page>.html`. Here those
-  addresses redirect to the development site's front page on GitHub Pages, not to the page
-  itself: a Static Web App redirect can't carry the rest of the address.
-- **For now** the folder is a second address. Its pages send `X-Robots-Tag: noindex`, so
-  search engines keep the GitHub Pages address. Before it becomes the main address: the
-  tracker's page-view counter (it counts only on `ocha-dap.github.io`), its proxy's allowed
-  origins, `SITE_URL` for its `llms.txt`, and forwarding pages at the old address.
+- **Links into the password pages** go straight to the page on GitHub Pages. Any other
+  address under `/aa-tracker/dev/` or `/admin/` redirects to that site's front page there: a
+  Static Web App redirect can't carry the rest of the address.
+- **`Referrer-Policy: strict-origin-when-cross-origin`** on `/aa-tracker/`: the app's default
+  (`same-origin`) makes Firefox send its page counts to the tracker's proxy with no origin,
+  and the proxy refuses those.
+- **What the tracker does for the move** (in its own build): each open page names its address
+  here as canonical, its page counter counts here, its links into `dev/` go straight to the
+  page on GitHub Pages, and its `llms.txt` and data name this address.
 - GitHub turns off scheduled workflows in a public repo after 60 days without a commit. If
   that happens, the tracker stops updating here until the workflow is turned on again.
 
