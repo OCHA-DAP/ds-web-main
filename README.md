@@ -52,6 +52,9 @@ the password-protected `dev/` and `admin/` pages stay.
 - **Links into the password pages** go straight to the page on GitHub Pages. Any other
   address under `/aa-tracker/dev/` or `/admin/` redirects to that site's front page there: a
   Static Web App redirect can't carry the rest of the address.
+- **`Referrer-Policy: strict-origin-when-cross-origin`** on `/aa-tracker/`: the app's default
+  (`same-origin`) makes Firefox send its page counts to the tracker's proxy with no origin,
+  and the proxy refuses those.
 - **What the tracker does for the move** (in its own build): each open page names its address
   here as canonical, its page counter counts here, its links into `dev/` go straight to the
   page on GitHub Pages, and its `llms.txt` and data name this address.
