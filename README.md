@@ -44,6 +44,9 @@ which stays its main address for now.
 - **`version.json`** at the root records this repo's commit and the tracker's. A scheduled
   run also deploys when the live commit is older than `main`, so a push whose own run was
   dropped from the queue still goes out.
+- **Addresses.** `trailingSlash` is `auto`: `/aa-tracker` redirects to `/aa-tracker/` (the
+  pages' relative links need the slash), and `page.html` redirects to `page`, which serves
+  the same file.
 - **Links into the password pages.** The open pages link to `dev/<page>.html`. Here those
   addresses redirect to the development site's front page on GitHub Pages, not to the page
   itself: a Static Web App redirect can't carry the rest of the address.
